@@ -4,10 +4,9 @@ from sympy import symbols, Matrix
 
 
 class Solver:
-    def __init__(self, data: dict, t, x):
+    def __init__(self, data: dict):
         self.n_ = data['n']  # нужно ли это поле? это ведь len(self.f_) (или len(self.R_))
-        self.x_ = x
-        self.t_ = t
+        self.x_ = data['x']
         self.p_ = symbols('p_:%d' % self.n_)
         self.a_ = data['a']
         self.b_ = data['b']
@@ -15,16 +14,6 @@ class Solver:
         self.p0_ = data['p0']
         self.f_ = data['f']
         self.R_ = data['R']
-        # print(type(self.n_))
-        # print(type(self.x_[0]))
-        # print(type(self.t_))
-        # print(type(self.p_[0]))
-        # print(type(self.a_))
-        # print(type(self.b_))
-        # print(type(self.t_star_))
-        # print(type(self.p0_[0]))
-        # print(type(self.f_[0]))
-        # print(type(self.R_[0]))
 
     def __f(self, t, x):  # f(x,t) returns [f_0(x,t), f_1(x,t), ...]
         fun = []
