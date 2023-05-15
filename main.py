@@ -1,10 +1,12 @@
+#!/usr/bin/python3
+
 import sympy
 
 from data_parser import Parser
 from solver import Solver
 from plotter import Plotter
 
-if __name__ == '__main__':
+def main():
     sympy.init_printing(use_unicode=True)
     t = sympy.symbols('t')
 
@@ -16,3 +18,7 @@ if __name__ == '__main__':
 
     plotter = Plotter(t, x)
     plotter.plot_x()
+
+
+if __name__ == '__main__':
+    main()
