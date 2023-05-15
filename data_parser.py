@@ -1,5 +1,5 @@
-from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, function_exponentiation, convert_xor
 from sympy import symbols
+from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, function_exponentiation, convert_xor
 
 
 def is_number(str) -> bool:
@@ -72,4 +72,3 @@ class Parser:
         y, z = symbols('y z')
         for i in range(self.n_):
             self.R_.append(parse_expr(input(f"R_{i}(y, z) = "), transformations=self.__transformations))
-        # print(self.R_[0].subs({y: 0, z: 1}))
