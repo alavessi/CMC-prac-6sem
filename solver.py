@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-from sympy import diff, symbols, Function, Matrix
+from sympy import symbols, Matrix
 
 
 class Solver:
