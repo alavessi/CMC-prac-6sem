@@ -11,11 +11,10 @@ def is_number(str) -> bool:
 
 
 class Parser:
-    def __init__(self, t):
+    def __init__(self):
         self.n_ = 0
         self.a_, self.b_ = 0, 0
         self.t_star_ = 0
-        self.t_ = t
         self.x_ = symbols('x:%d' % self.n_)
         self.p0_ = []
         self.f_ = []
