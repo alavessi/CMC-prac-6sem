@@ -14,6 +14,15 @@ class Solver:
         self.p0_ = data['p0']
         self.f_ = data['f']
         self.R_ = data['R']
+        # print(type(self.n_))
+        # print(type(self.x_[0]))
+        # print(type(self.p_[0]))
+        # print(type(self.a_))
+        # print(type(self.b_))
+        # print(type(self.t_star_))
+        # print(type(self.p0_[0]))
+        # print(type(self.f_[0]))
+        # print(type(self.R_[0]))
 
     def __f(self, t, x):  # f(x,t) returns [f_0(x,t), f_1(x,t), ...]
         fun = []
@@ -24,25 +33,26 @@ class Solver:
             fun.append(f.evalf())
         return fun
 
-    def __find_x(self, tau):
-        t_grid = np.linspace(self.a_, self.b_, int((self.b_ - self.a_) / tau))
-        sol = solve_ivp(self.__f, [self.a_, self.b_], self.p0_, t_eval=t_grid, dense_output=True)
-        return (sol.t, sol.y)
+    def __find_x(self):
+        lhs = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
+        rhs = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
+        t = np.concatenate((lhs.t[:0:-1], rhs.t))
+        x = np.concatenate((lhs.y[::,:0:-1], rhs.y), axis=1)
+        return t, x
 
     def __find_X(self):
         return
 
     def __solve_inner(self, J):
-        tau = 0.1
-        t, x = self.__find_x(tau)
+        t, x = self.__find_x()
         A = []
         for i in range(len(t)):
             A.append(J.subs('t', t[i]))
             for j in range(self.n_):
                 A[i] = A[i].subs(self.x_[j], x[j][i])
         # print(A)
-        return (t, x)
         self.__find_X()
+        return (t, x)
 
     def solve(self):
         J = Matrix(self.f_).jacobian(Matrix(self.x_))
