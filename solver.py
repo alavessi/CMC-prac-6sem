@@ -14,15 +14,6 @@ class Solver:
         self.p0_ = data['p0']
         self.f_ = data['f']
         self.R_ = data['R']
-        # print(type(self.n_))
-        # print(type(self.x_[0]))
-        # print(type(self.p_[0]))
-        # print(type(self.a_))
-        # print(type(self.b_))
-        # print(type(self.t_star_))
-        # print(type(self.p0_[0]))
-        # print(type(self.f_[0]))
-        # print(type(self.R_[0]))
 
     def __f(self, t, x):  # f(x,t) returns [f_0(x,t), f_1(x,t), ...]
         fun = []
