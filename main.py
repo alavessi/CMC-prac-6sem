@@ -1,8 +1,4 @@
-from math import sin, cos, exp
 import sympy
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
 
 from data_parser import Parser
 from solver import Solver
