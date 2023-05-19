@@ -64,7 +64,7 @@ class Parser:
     def __parse_function_f(self):
         print("Введите функции f(x, t) из правых частей ОДУ")
         for i in range(self.n_):
-            self.f_.append(parse_expr(input(f"f_{i}(x, t) = "), transformations=self.__transformations))
+            self.f_.append(parse_expr(input(f"dx_{i}/dt = "), transformations=self.__transformations))
 
     def __parse_function_R(self):
         print("Введите функции R из краевых условий R(x(a), x(b)) = 0. Введем обозначения: y = x(a), z = x(b)")
