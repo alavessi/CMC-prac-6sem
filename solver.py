@@ -29,19 +29,19 @@ class Solver:
         sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
         sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
         t = np.hstack((sol_left.t[:0:-1], sol_right.t))
-        x = np.hstack((sol_left.y[::,:0:-1], sol_right.y))
+        x = np.hstack((sol_left.y[::, :0:-1], sol_right.y))
         return t, x
 
-    def __matprod(self, X, t, A):  # returns A(t) * X
+    def __matprod(self, X, t, A):  # returns A * X
         idx = round(((t - self.a_) / (self.b_ - self.a_) * (len(A) - 1)))
-        assert(idx >= 0 and idx < len(A))
+        assert (idx >= 0 and idx < len(A))
         return A[idx]@X
 
     def __find_X(self, A):
         t_span = np.linspace(self.t_star_, self.a_)
         sol_left = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
         sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
-        return np.vstack((sol_left[:0:-1,::,::], sol_right))
+        return np.vstack((sol_left[:0:-1, ::, ::], sol_right))
 
     def __solve_inner(self, J):
         t, x = self.__find_x()
