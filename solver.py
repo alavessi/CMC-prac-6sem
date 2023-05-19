@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 from sympy import symbols, Matrix
+from odeintw import odeintw
 
 
 class Solver:
@@ -25,14 +26,22 @@ class Solver:
         return fun
 
     def __find_x(self):
-        lhs = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
-        rhs = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
-        t = np.concatenate((lhs.t[:0:-1], rhs.t))
-        x = np.concatenate((lhs.y[::,:0:-1], rhs.y), axis=1)
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
+        t = np.hstack((sol_left.t[:0:-1], sol_right.t))
+        x = np.hstack((sol_left.y[::,:0:-1], sol_right.y))
         return t, x
 
-    def __find_X(self):
-        return
+    def __matprod(self, X, t, A):  # returns A(t) * X
+        idx = round(((t - self.a_) / (self.b_ - self.a_) * (len(A) - 1)))
+        assert(idx >= 0 and idx < len(A))
+        return A[idx]@X
+
+    def __find_X(self, A):
+        t_span = np.linspace(self.t_star_, self.a_)
+        sol_left = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
+        sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
+        return np.vstack((sol_left[:0:-1,::,::], sol_right))
 
     def __solve_inner(self, J):
         t, x = self.__find_x()
@@ -41,11 +50,10 @@ class Solver:
             A.append(J.subs('t', t[i]))
             for j in range(self.n_):
                 A[i] = A[i].subs(self.x_[j], x[j][i])
-        # print(A)
-        self.__find_X()
+        A = np.array(A, dtype='float64')
+        X = self.__find_X(A)
         return (t, x)
 
     def solve(self):
         J = Matrix(self.f_).jacobian(Matrix(self.x_))
-        # print(J)
         return self.__solve_inner(J)
