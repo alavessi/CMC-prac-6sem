@@ -16,7 +16,7 @@ class Solver:
         self.f_ = data['f']
         self.R_ = data['R']
 
-    def __f(self, t, x):  # f(x,t) returns [f_0(x,t), f_1(x,t), ...]
+    def __f(self, t, x):  # f(t, x) returns [f_0(t, x), f_1(t, x), ...]
         fun = []
         for i in range(self.n_):
             f = self.f_[i].subs('t', t)
@@ -29,18 +29,17 @@ class Solver:
         sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
         sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
         t = np.hstack((sol_left.t[:0:-1], sol_right.t))
-        x = np.hstack((sol_left.y[::, :0:-1], sol_right.y))
+        x = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
         return t, x
 
     def __matprod(self, X, t, A):  # returns A * X
-        idx = round(((t - self.a_) / (self.b_ - self.a_) * (len(A) - 1)))
-        assert (idx >= 0 and idx < len(A))
+        idx = max(0, min(len(A) - 1, round(((t - self.a_) / (self.b_ - self.a_) * (len(A) - 1)))))
         return A[idx]@X
 
     def __find_X(self, A):
         sol_left = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.a_), args=(A,))
         sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.b_), args=(A,))
-        return np.vstack((sol_left[:0:-1, ::, ::], sol_right))
+        return np.vstack((sol_left[:0:-1], sol_right))
 
     def __solve_inner(self, J):
         t, x = self.__find_x()
@@ -50,7 +49,9 @@ class Solver:
             for j in range(self.n_):
                 A[i] = A[i].subs(self.x_[j], x[j][i])
         A = np.array(A, dtype='float64')
+        print(t.shape, x.shape, A.shape)
         X = self.__find_X(A)
+
         return (t, x)
 
     def solve(self):
