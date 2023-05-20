@@ -36,7 +36,7 @@ class Parser:
             print("ЭТО ДОЛЖНО БЫТЬ НАТУРАЛЬНОЕ ЧИСЛО")
             s = input("n = ")
         self.n_ = int(s)
-        self.x_ = symbols('x_:%d' % self.n_)
+        self.x_ = tuple(list(symbols('x_:%d' % (self.n_ + 1)))[1:])
 
     def __parse_time_interval(self):
         print("Задайте начальный момент времени a и конечный момент времени b")
@@ -56,18 +56,18 @@ class Parser:
 
     def __parse_parameter(self):
         for i in range(self.n_):
-            str_p = input(f"Задайте начальное приближение параметра: p0_{i} = ")
+            str_p = input(f"Задайте начальное приближение параметра: p0_{i + 1} = ")
             while not is_number(str_p):
-                str_p = (input(f"ЭТО ДОЛЖНО БЫТЬ ЧИСЛО: p0_{i} = "))
+                str_p = (input(f"ЭТО ДОЛЖНО БЫТЬ ЧИСЛО: p0_{i + 1} = "))
             self.p0_.append(float(str_p))
 
     def __parse_function_f(self):
         print("Введите функции f(x, t) из правых частей ОДУ")
         for i in range(self.n_):
-            self.f_.append(parse_expr(input(f"dx_{i}/dt = "), transformations=self.__transformations))
+            self.f_.append(parse_expr(input(f"dx_{i + 1}/dt = "), transformations=self.__transformations))
 
     def __parse_function_R(self):
         print("Введите функции R из краевых условий R(x(a), x(b)) = 0. Введем обозначения: y = x(a), z = x(b)")
         y, z = symbols('y z')
         for i in range(self.n_):
-            self.R_.append(parse_expr(input(f"R_{i}(y, z) = "), transformations=self.__transformations))
+            self.R_.append(parse_expr(input(f"R_{i + 1}(y, z) = "), transformations=self.__transformations))
