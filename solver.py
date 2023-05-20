@@ -38,9 +38,8 @@ class Solver:
         return A[idx]@X
 
     def __find_X(self, A):
-        t_span = np.linspace(self.t_star_, self.a_)
-        sol_left = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
-        sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=t_span, args=(A,))
+        sol_left = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.a_), args=(A,))
+        sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.b_), args=(A,))
         return np.vstack((sol_left[:0:-1, ::, ::], sol_right))
 
     def __solve_inner(self, J):
