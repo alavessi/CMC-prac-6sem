@@ -8,6 +8,8 @@ class Solver:
     def __init__(self, data: dict):
         self.n_ = data['n']  # нужно ли это поле? это ведь len(self.f_) (или len(self.R_))
         self.x_ = data['x']
+        self.xa_ = data['x(a)']
+        self.xb = data['x(b)']
         self.p_ = symbols('p_:%d' % self.n_)
         self.a_ = data['a']
         self.b_ = data['b']
@@ -16,7 +18,7 @@ class Solver:
         self.f_ = data['f']
         self.R_ = data['R']
 
-    def __f(self, t, x):  # f(t, x) returns [f_0(t, x), f_1(t, x), ...]
+    def __f(self, t, x):   # f(t, x) returns [f_0(t, x), f_1(t, x), ...]
         fun = []
         for i in range(self.n_):
             f = self.f_[i].subs('t', t)
@@ -49,9 +51,7 @@ class Solver:
             for j in range(self.n_):
                 A[i] = A[i].subs(self.x_[j], x[j][i])
         A = np.array(A, dtype='float64')
-        print(t.shape, x.shape, A.shape)
         X = self.__find_X(A)
-
         return (t, x)
 
     def solve(self):
