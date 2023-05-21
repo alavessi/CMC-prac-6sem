@@ -24,7 +24,16 @@ class Parser:
         self.__parse_parameter()
         self.__parse_function_f()
         self.__parse_function_R()
-        return {'n': self.n_, 'a': self.a_, 'b': self.b_, 't*': self.t_star_, 'x': self.x_, 'p0': self.p0_, 'f': self.f_, 'R': self.R_}
+        return {'n': self.n_,
+                'a': self.a_,
+                'b': self.b_,
+                't*': self.t_star_,
+                'x': self.x_,
+                'x(a)': self.xa_,
+                'x(b)': self.xb_,
+                'p0': self.p0_,
+                'f': self.f_,
+                'R': self.R_}
 
     def __parse_dimension(self):
         s = input("Задайте размерность задачи: n = ")
@@ -63,7 +72,8 @@ class Parser:
             self.f_.append(parse_expr(input(f"dx_{i + 1}/dt = "), transformations=self.__transformations))
 
     def __parse_function_R(self):
-        print("Введите функции R из краевых условий R(x(a), x(b)) = 0. Введем обозначения: y = x(a), z = x(b)")
-        y, z = symbols('y z')
+        print("Введите функции R из краевых условий R(x(a), x(b)) = 0")
+        self.xa_ = tuple(list(symbols(f'x_:%d({self.a_})' % (self.n_ + 1)))[1:])
+        self.xb_ = tuple(list(symbols(f'x_:%d({self.b_})' % (self.n_ + 1)))[1:])
         for i in range(self.n_):
-            self.R_.append(parse_expr(input(f"R_{i + 1}(y, z) = "), transformations=self.__transformations))
+            self.R_.append(parse_expr(input(f"R_{i + 1}(x({self.a_}), x({self.b_})) = "), transformations=self.__transformations))
