@@ -9,7 +9,7 @@ class Solver:
         self.n_ = data['n']  # нужно ли это поле? это ведь len(self.f_) (или len(self.R_))
         self.x_ = data['x']
         self.xa_ = data['x(a)']
-        self.xb = data['x(b)']
+        self.xb_ = data['x(b)']
         self.p_ = symbols('p_:%d' % self.n_)
         self.a_ = data['a']
         self.b_ = data['b']
