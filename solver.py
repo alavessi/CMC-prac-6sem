@@ -43,6 +43,25 @@ class Solver:
         sol_right = odeintw(func=self.__matprod, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.b_), args=(A,))
         return np.vstack((sol_left[:0:-1], sol_right))
 
+    def __Phi(self, x):
+        Phi = np.ndarray(self.n_)
+        for i in range(self.n_):
+            R = self.R_[i]
+            for j in range(self.n_):
+                R = R.subs({self.xa_[j]: x[j][0], self.xb_[j]: x[j][-1]})
+            Phi[i] = R.evalf()
+        return Phi
+
+    def __dRdx(self, x, Rdx):  # подстановка x(a,p), x(b,p) в матрицы частных производных R'x, R'y
+        A = Rdx
+        for i in range(self.n_):
+            A = A.subs({self.xa_[i]: x[i][0], self.xb_[i]: x[i][-1]})
+        return A
+
+    def __solve_external(self, Phi, dPhidp):
+        rhs = (-1) * np.linalg.inv(dPhidp) * Phi()
+        sol = solve_ivp(fun=self.__f, t_span=[0, 1], y0=self.p0_, method='Radau', dense_output=True)
+
     def __solve_inner(self, J):
         t, x = self.__find_x()
         A = []
@@ -52,8 +71,14 @@ class Solver:
                 A[i] = A[i].subs(self.x_[j], x[j][i])
         A = np.array(A, dtype='float64')
         X = self.__find_X(A)
-        return (t, x)
+        return (t, x, X)
 
     def solve(self):
         J = Matrix(self.f_).jacobian(Matrix(self.x_))
-        return self.__solve_inner(J)
+        t, x, X = self.__solve_inner(J)
+        Ф = self.__Phi(x)
+        Rdx = Matrix(self.R_).jacobian(Matrix(self.xa_))
+        Rdy = Matrix(self.R_).jacobian(Matrix(self.xb_))
+        dRdx = self.__dRdx(x, Rdx)
+        dRdy = self.__dRdx(x, Rdy)
+        dPhidp = dRdx@X[0] + dRdy@X[-1]
