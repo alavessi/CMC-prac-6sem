@@ -6,11 +6,10 @@ from odeintw import odeintw
 
 class Solver:
     def __init__(self, data: dict):
-        self.n_ = data['n']  # нужно ли это поле? это ведь len(self.f_) (или len(self.R_))
+        self.n_ = data['n']
         self.x_ = data['x']
         self.xa_ = data['x(a)']
         self.xb_ = data['x(b)']
-        self.p_ = symbols('p_:%d' % self.n_)
         self.a_ = data['a']
         self.b_ = data['b']
         self.t_star_ = data['t*']
@@ -27,9 +26,9 @@ class Solver:
             fun.append(f.evalf())
         return fun
 
-    def __find_x(self):
-        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=self.p0_, method='Radau', dense_output=True)
-        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=self.p0_, method='Radau', dense_output=True)
+    def __find_x(self, p):
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p)
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p)
         t = np.hstack((sol_left.t[:0:-1], sol_right.t))
         x = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
         return t, x
@@ -58,12 +57,17 @@ class Solver:
             A = A.subs({self.xa_[i]: x[i][0], self.xb_[i]: x[i][-1]})
         return A
 
-    def __solve_external(self, Phi, dPhidp):
-        rhs = (-1) * np.linalg.inv(dPhidp) * Phi()
-        sol = solve_ivp(fun=self.__f, t_span=[0, 1], y0=self.p0_, method='Radau', dense_output=True)
+    def __rhs_ext(self, mu, p, J, Phi0):
+        dPhidp = self.__solve_inner(J, p)
+        # print(dPhidp)
+        return (-1) * np.linalg.inv(dPhidp)@Phi0
 
-    def __solve_inner(self, J):
-        t, x = self.__find_x()
+    def __solve_external(self, J, Phi0):
+        sol = solve_ivp(fun=self.__rhs_ext, t_span=[0, 1], y0=self.p0_, args=(J, Phi0))
+        return sol.y
+
+    def __solve_inner(self, J, p):
+        t, x = self.__find_x(p)
         A = []
         for i in range(len(t)):
             A.append(J.subs('t', t[i]))
@@ -71,14 +75,22 @@ class Solver:
                 A[i] = A[i].subs(self.x_[j], x[j][i])
         A = np.array(A, dtype='float64')
         X = self.__find_X(A)
-        return (t, x, X)
-
-    def solve(self):
-        J = Matrix(self.f_).jacobian(Matrix(self.x_))
-        t, x, X = self.__solve_inner(J)
-        Ф = self.__Phi(x)
         Rdx = Matrix(self.R_).jacobian(Matrix(self.xa_))
         Rdy = Matrix(self.R_).jacobian(Matrix(self.xb_))
         dRdx = self.__dRdx(x, Rdx)
         dRdy = self.__dRdx(x, Rdy)
         dPhidp = dRdx@X[0] + dRdy@X[-1]
+        return np.array(dPhidp, dtype=float)
+
+    def solve(self):
+        J = Matrix(self.f_).jacobian(Matrix(self.x_))
+        x_0 = self.__find_x(self.p0_)[1]
+        print(x_0)
+        Phi0 = self.__Phi(x_0)
+        p = self.__solve_external(J, Phi0)
+        print(p)
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p[:, -1])
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p[:, -1])
+        t = np.hstack((sol_left.t[:0:-1], sol_right.t))
+        ans = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
+        return t, ans
