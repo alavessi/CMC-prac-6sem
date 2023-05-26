@@ -85,12 +85,12 @@ class Solver:
     def solve(self):
         J = Matrix(self.f_).jacobian(Matrix(self.x_))
         x_0 = self.__find_x(self.p0_)[1]
-        print(x_0)
         Phi0 = self.__Phi(x_0)
         p = self.__solve_external(J, Phi0)
-        print(p)
-        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p[:, -1])
-        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p[:, -1])
+        p1 = p[:, -1]
+        print(p1)
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p1)
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p1)
         t = np.hstack((sol_left.t[:0:-1], sol_right.t))
         ans = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
         return t, ans
