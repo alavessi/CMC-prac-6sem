@@ -62,10 +62,6 @@ class Solver:
         # print(dPhidp)
         return (-1) * np.linalg.inv(dPhidp)@Phi0
 
-    def __solve_external(self, J, Phi0):
-        sol = solve_ivp(fun=self.__rhs_ext, t_span=[0, 1], y0=self.p0_, args=(J, Phi0))
-        return sol.y
-
     def __solve_inner(self, J, p):
         t, x = self.__find_x(p)
         A = []
@@ -81,6 +77,10 @@ class Solver:
         dRdy = self.__dRdx(x, Rdy)
         dPhidp = dRdx@X[0] + dRdy@X[-1]
         return np.array(dPhidp, dtype=float)
+
+    def __solve_external(self, J, Phi0):
+        sol = solve_ivp(fun=self.__rhs_ext, t_span=[0, 1], y0=self.p0_, args=(J, Phi0))
+        return sol.y
 
     def solve(self):
         J = Matrix(self.f_).jacobian(Matrix(self.x_))
