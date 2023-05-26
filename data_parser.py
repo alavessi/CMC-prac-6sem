@@ -73,7 +73,7 @@ class Parser:
 
     def __parse_function_R(self):
         print("Введите функции R из краевых условий R(x(a), x(b)) = 0")
-        self.xa_ = tuple(list(symbols(f'x_:%d({self.a_})' % (self.n_ + 1)))[1:])
-        self.xb_ = tuple(list(symbols(f'x_:%d({self.b_})' % (self.n_ + 1)))[1:])
+        self.xa_ = tuple(list(symbols('x_:%da' % (self.n_ + 1)))[1:])
+        self.xb_ = tuple(list(symbols('x_:%db' % (self.n_ + 1)))[1:])
         for i in range(self.n_):
-            self.R_.append(parse_expr(input(f"R_{i + 1}(x({self.a_}), x({self.b_})) = "), transformations=self.__transformations))
+            self.R_.append(parse_expr(input(f"R_{i + 1}(x(a), x(b)) = "), transformations=self.__transformations))
