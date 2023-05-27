@@ -1,7 +1,5 @@
-from sympy import symbols
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, function_exponentiation, convert_xor
 
-PROBLEM_NAMES = {"Краевая задача двух тел", "Предельные циклы в системе Эквейлера", "Функционал типа 'энергия' для трехкратного интегратора"}
 
 def is_number(str) -> bool:
     try:
@@ -33,34 +31,39 @@ class Parser:
                 'R': self.R_}
 
     def __parse_dimension(self):
-        if self.problem_name_ in {"Краевая задача двух тел", "Предельные циклы в системе Эквейлера"}:
-            return 4
-        if self.problem_name_ == "Функционал типа 'энергия' для трехкратного интегратора":
-            return 6
-        s = input("Задайте размерность задачи: n = ")
-        while not (s.isdigit() and int(s) != 0):
-            print("ЭТО ДОЛЖНО БЫТЬ НАТУРАЛЬНОЕ ЧИСЛО")
-            s = input("n = ")
-        return int(s)
+        match self.problem_name_:
+            case "Краевая задача двух тел":
+                return 4
+            case "Предельные циклы в системе Эквейлера":
+                return 4
+            case "Функционал типа 'энергия' для трехкратного интегратора":
+                return 6
+            case _:
+                s = input("Задайте размерность задачи: n = ")
+                while not (s.isdigit() and int(s) != 0):
+                    print("ЭТО ДОЛЖНО БЫТЬ НАТУРАЛЬНОЕ ЧИСЛО")
+                    s = input("n = ")
+                return int(s)
 
     def __parse_time_interval(self):
-        if self.problem_name_ in PROBLEM_NAMES:
-            if self.problem_name_ == "Предельные циклы в системе Эквейлера":
+        match self.problem_name_:
+            case "Предельные циклы в системе Эквейлера":
                 return 0, 1
-            str_T = input("Задайте конечный момент времени T = ")
-            while not (is_number(str_T) and float(str_T) > 0):
-                print("ЭТО ДОЛЖНО БЫТЬ ПОЛОЖИТЕЛЬНОЕ ЧИСЛО")
-                str_T = input("T = ")
-            return 0, float(str_T)
-
-        print("Задайте начальный момент времени a и конечный момент времени b")
-        str_a = input("a = ")
-        str_b = input("b = ")
-        while not (is_number(str_a) and is_number(str_b) and float(str_a) >= 0 and float(str_a) < float(str_b)):
-            print("a И b ДОЛЖНЫ БЫТЬ ЧИСЛАМИ, ПРИЧЕМ 0 <= a < b")
-            str_a = input("a = ")
-            str_b = input("b = ")
-        return float(str_a), float(str_b)
+            case "Краевая задача двух тел" | "Функционал типа 'энергия' для трехкратного интегратора":
+                str_T = input("Задайте конечный момент времени T = ")
+                while not (is_number(str_T) and float(str_T) > 0):
+                    print("ЭТО ДОЛЖНО БЫТЬ ПОЛОЖИТЕЛЬНОЕ ЧИСЛО")
+                    str_T = input("T = ")
+                return 0, float(str_T)
+            case _:
+                print("Задайте начальный момент времени a и конечный момент времени b")
+                str_a = input("a = ")
+                str_b = input("b = ")
+                while not (is_number(str_a) and is_number(str_b) and float(str_a) >= 0 and float(str_a) < float(str_b)):
+                    print("a И b ДОЛЖНЫ БЫТЬ ЧИСЛАМИ, ПРИЧЕМ 0 <= a < b")
+                    str_a = input("a = ")
+                    str_b = input("b = ")
+                return float(str_a), float(str_b)
 
     def __parse_time_star(self):
         str_t = (input(f"Задайте момент времени t* из отрезка [{self.a_}, {self.b_}]: t* = "))
@@ -77,32 +80,20 @@ class Parser:
         return self.p0_
 
     def __parse_function_f(self):
-        if self.problem_name_ not in PROBLEM_NAMES:
-            print("Введите функции f(x, t) из правых частей ОДУ")
-            f = []
-            for i in range(self.n_):
-                f.append(parse_expr(input(f"dx_{i + 1}/dt = "), transformations=self.__transformations))
-            return f
-        
         match self.problem_name_:
             case "Краевая задача двух тел":
                 funcs = ['x_3', 'x_4', '-x_1/(x_1**2 + x_2**2)**(3/2)', '-x_2/(x_1**2 + x_2**2)**(3/2)']
             case "Предельные циклы в системе Эквейлера":
-                funcs = ['x_3*x_2', 'x_2*(-x_1+sin(x_2))', '0', '0']
+                funcs = ['x_3*x_2', 'x_3*(-x_1+sin(x_2))', '0', '0']
             case "Функционал типа 'энергия' для трехкратного интегратора":
                 v = float(input("Задайте малый параметр v = "))
                 funcs = ['x_2', 'x_3', f'1/2*(({v}+(x_6+1)**2)+({v}+(x_6-1)**2))', '0', '-x_4', '-x_5']
+            case _:
+                print("Введите функции f(x, t) из правых частей ОДУ")
+                funcs = [input(f"dx_{i + 1}/dt = ") for i in range(self.n_)]
         return [parse_expr(f, transformations=self.__transformations) for f in funcs]
 
-
     def __parse_function_R(self):
-        if self.problem_name_ not in PROBLEM_NAMES:
-            print("Введите функции R из краевых условий R(x(a), x(b)) = 0")
-            R = []
-            for i in range(self.n_):
-                R.append(parse_expr(input(f"R_{i + 1}(x(a), x(b)) = "), transformations=self.__transformations))
-            return R
-
         match self.problem_name_:
             case "Краевая задача двух тел":
                 a1 = float(input("a1 = "))
@@ -114,4 +105,7 @@ class Parser:
                 R = ['x_1a-x_4a', 'x_1b-x_4b', 'x_2a', 'x_2b']
             case "Функционал типа 'энергия' для трехкратного интегратора":
                 R = ['x_1a-1', 'x_2a', 'x_3a', 'x_1b', 'x_2b', 'x_3b']
+            case _:
+                print("Введите функции R из краевых условий R(x(a), x(b)) = 0")
+                R = [input(f"R_{i + 1}(x(a), x(b)) = ") for i in range(self.n_)]
         return [parse_expr(r, transformations=self.__transformations) for r in R]
