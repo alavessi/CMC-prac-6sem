@@ -12,7 +12,6 @@ def is_number(str) -> bool:
 class Parser:
     def __init__(self, problem_name=''):
         self.problem_name_ = problem_name
-        self.p0_ = []
         self.__transformations = standard_transformations + (implicit_multiplication_application, convert_xor, function_exponentiation)
 
     def parse_input_data(self) -> dict:
@@ -72,12 +71,13 @@ class Parser:
         return float(str_t)
 
     def __parse_parameter(self):
+        p0 = []
         for i in range(self.n_):
             str_p = input(f"Задайте начальное приближение параметра: p0_{i + 1} = ")
             while not is_number(str_p):
                 str_p = (input(f"ЭТО ДОЛЖНО БЫТЬ ЧИСЛО: p0_{i + 1} = "))
-            self.p0_.append(float(str_p))
-        return self.p0_
+            p0.append(float(str_p))
+        return p0
 
     def __parse_function_f(self):
         match self.problem_name_:
