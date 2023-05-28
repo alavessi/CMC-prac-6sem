@@ -11,7 +11,7 @@ from plotter import Plotter
 def main():
     sympy.init_printing(use_unicode=True)
 
-    parser = argparse.ArgumentParser(description='Решение кревой задачи методом продолжения по параметру')
+    parser = argparse.ArgumentParser(description='Решение краевой задачи методом продолжения по параметру')
     parser.add_argument('--problem_name', type=str, default='', help='Вы можете выбрать одну из известных задач (по умолчанию данные вводятся в полном объёме с клавиатуры)')
     args = parser.parse_args()
 
