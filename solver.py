@@ -30,15 +30,14 @@ class Solver:
         if self.t_star_ == self.a_:
             sol = solve_ivp(fun=self.__f, t_span=[self.a_, self.b_], y0=p, t_eval=np.linspace(self.a_, self.b_, 100))
             return sol.t, sol.y
-        elif self.t_star_ == self.b_:
+        if self.t_star_ == self.b_:
             sol = solve_ivp(fun=self.__f, t_span=[self.b_, self.a_], y0=p, t_eval=np.linspace(self.b_, self.a_, 100))
             return sol.t[::-1], sol.y[:, ::-1]
-        else:
-            sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p, t_eval=np.linspace(self.t_star_, self.a_, 100))
-            sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p, t_eval=np.linspace(self.t_star_, self.b_, 100))
-            t = np.hstack((sol_left.t[:0:-1], sol_right.t))
-            x = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
-            return t, x
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p, t_eval=np.linspace(self.t_star_, self.a_, 100))
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p, t_eval=np.linspace(self.t_star_, self.b_, 100))
+        t = np.hstack((sol_left.t[:0:-1], sol_right.t))
+        x = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
+        return t, x
 
     def __rxs_matrix(self, X, t, A):  # returns A * X
         idx = max(0, min(len(A) - 1, round((t - self.a_) / (self.b_ - self.a_) * len(A)) - 1))
@@ -97,12 +96,11 @@ class Solver:
         if self.t_star_ == self.a_:
             sol = solve_ivp(fun=self.__f, t_span=[self.a_, self.b_], y0=p, t_eval=np.linspace(self.a_, self.b_, 100))
             return sol.t, sol.y
-        elif self.t_star_ == self.b_:
+        if self.t_star_ == self.b_:
             sol = solve_ivp(fun=self.__f, t_span=[self.b_, self.a_], y0=p, t_eval=np.linspace(self.b_, self.a_, 100))
             return sol.t[::-1], sol.y[:, ::-1]
-        else:
-            sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p, t_eval=np.linspace(self.t_star_, self.a_, 100))
-            sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p, t_eval=np.linspace(self.t_star_, self.b_, 100))
-            t = np.hstack((sol_left.t[:0:-1], sol_right.t))
-            ans = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
-            return t, ans
+        sol_left = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.a_], y0=p, t_eval=np.linspace(self.t_star_, self.a_, 100))
+        sol_right = solve_ivp(fun=self.__f, t_span=[self.t_star_, self.b_], y0=p, t_eval=np.linspace(self.t_star_, self.b_, 100))
+        t = np.hstack((sol_left.t[:0:-1], sol_right.t))
+        x = np.hstack((sol_left.y[:, :0:-1], sol_right.y))
+        return t, x
