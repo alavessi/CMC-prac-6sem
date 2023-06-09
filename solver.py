@@ -63,7 +63,7 @@ class Solver:
             if self.t_star_ == self.a_:
                 sol = solve_ivp(fun=self.__rxs_matrix, t_span=[self.a_, self.b_], y0=x0, t_eval=[self.a_, self.b_], args=(A,))
                 Xa[:, i], Xb[:, i] = sol.y[:, 0], sol.y[:, 1]
-            elif self.t_star_== self.b_:
+            elif self.t_star_ == self.b_:
                 sol = solve_ivp(fun=self.__rxs_matrix, t_span=[self.b_, self.a_], y0=x0, t_eval=[self.b_, self.a_], args=(A,))
                 Xa[:, i], Xb[:, i] = sol.y[:, 1], sol.y[:, 0]
             else:
