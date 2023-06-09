@@ -42,7 +42,7 @@ class Solver:
 
     def __rxs_matrix(self, X, t, A):  # returns A * X
         idx = max(0, min(len(A) - 1, round((t - self.a_) / (self.b_ - self.a_) * len(A)) - 1))
-        return A[idx]@X
+        return np.dot(A[idx], X)
 
     def __find_X(self, A):  # решение матричной внутренней задачи
         sol_left = odeintw(func=self.__rxs_matrix, y0=np.eye(self.n_), t=np.linspace(self.t_star_, self.a_), args=(A,))
