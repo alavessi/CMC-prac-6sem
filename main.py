@@ -2,7 +2,7 @@
 
 import argparse
 
-from data_parser import Parser, is_number
+from data_parser import Parser
 from solver import Solver
 from plotter import Plotter
 
@@ -20,7 +20,7 @@ def main():
     t, x = solver.solve()
     # print("t =", t)
     # print("x =", x)
-    
+
     plotter = Plotter(t, x)
     plotter.plot_x()
 
