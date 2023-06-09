@@ -80,7 +80,6 @@ class Solver:
 
     def __rhs_ext(self, mu, p, J, Phi0):  # returns −[Φ′(p)]^(−1) * Φ(p0)
         dPhidp = self.__solve_inner(J, p)
-        print(np.linalg.det(dPhidp))
         return (-1) * np.dot(np.linalg.inv(dPhidp), Phi0)
 
     def __solve_external(self, J, Phi0):  # решение внешней задачи
