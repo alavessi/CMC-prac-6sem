@@ -88,11 +88,6 @@ class Solver:
             A = A.subs({self.xa_[i]: x[i][0], self.xb_[i]: x[i][-1]})
         return np.array(A, dtype=float)
 
-    def __rhs_ext(self, mu, p, J, Phi0):
-        dPhidp = self.__solve_inner(J, p)
-        print(np.linalg.det(dPhidp))
-        return (-1) * np.linalg.inv(dPhidp)@Phi0
-
     def __solve_inner(self, J, p):
         t, x = self.__find_x(p)
         A = []
@@ -107,6 +102,11 @@ class Solver:
         dRdy = self.__dRdx(x, Rdy)
         dPhidp = np.dot(dRdx, Xa) + np.dot(dRdy, Xb)
         return dPhidp
+
+    def __rhs_ext(self, mu, p, J, Phi0):
+        dPhidp = self.__solve_inner(J, p)
+        print(np.linalg.det(dPhidp))
+        return (-1) * np.dot(np.linalg.inv(dPhidp), Phi0)
 
     def __solve_external(self, J, Phi0):
         sol = solve_ivp(fun=self.__rhs_ext, t_span=[0, 1], y0=self.p0_, t_eval=[1], args=(J, Phi0))
