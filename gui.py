@@ -1,7 +1,7 @@
 from tkinter import Tk, Menu, Frame, Button, Label, Text, LabelFrame
 from tkinter.ttk import Combobox, Progressbar
 from tkinter.filedialog import asksaveasfile, askopenfile
-from tkinter.constants import LEFT, RIGHT, TOP, BOTTOM, DISABLED, NORMAL, END, WORD, BOTH, CENTER
+from tkinter.constants import LEFT, RIGHT, TOP, DISABLED, NORMAL, END, WORD, BOTH, CENTER
 
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, function_exponentiation, convert_xor
 from PIL import Image, ImageTk
@@ -14,8 +14,6 @@ from solver import Solver
 
 METHODS = ["RK45", "RK23", "DOP853", "Radau", "BDF", "LSODA"]
 TRANSFORMATIONS = standard_transformations + (implicit_multiplication_application, convert_xor, function_exponentiation)
-MAXIMALDIMENSION = 6
-AXES = ["t", "x_1", "x_2", "x_3", "x_4", "x_5", "x_6"]
 
 
 def get_frame(frame: Frame, text: str, side: str = LEFT, padx: int = None):
@@ -56,8 +54,8 @@ def frame_external_method(frame: Frame) -> Combobox:
 
 
 def frame_initial_value(frame: Frame) -> Text:
-    frame = get_frame(frame=frame, text="Начальное приближение параметра:")
-    init_value = Text(frame, width=30, height=1, font=("Arial", 15))
+    frame = get_frame(frame=frame, text="Вектор начального приближения параметра:")
+    init_value = Text(frame, width=20, height=1, font=("Arial", 15))
     init_value.pack(side=LEFT, expand=True, pady=5, padx=10)
     return init_value
 
@@ -65,12 +63,16 @@ def frame_initial_value(frame: Frame) -> Text:
 def about_program():
     about_program_window = Tk()
     about_program_window.title('О программе')
-    about_program_window.geometry('400x250')
+    about_program_window.geometry('800x300')
     text = Text(about_program_window, width=150, height=100, wrap=WORD)
     text.pack(side=TOP)
-    pack = "Данная программа позволяет получить решение краевой задачи ОДУ методом продолжения по параметру.\n" + \
-           "Имеется возможность графически отобразить на плоскости решения. решаемой системы можно выбрать одну" + \
-           "из трёх краевых задач."
+    pack = "Данная программа является семестровым заданием по практикуму на ЭВМ 6-ого семестра на кафедре оптимального управления ВМК МГУ.\n" + \
+           "Программа позволяет получить численное решение краевой задачи системы ОДУ методом продолжения по параметру.\n" + \
+           "Для использования программы нужно установить интерпретатор Python версии 3.10 или новее и библиотеки Numpy, Pandas, Matplotlib, Scipy, Sympy, odeintw, PIL.\n" + \
+           "После этого нужно положить в одну директорию файлы gui.py, solver.py и этот main.py, а так же файл my_photo.jpg и директорию problems с заданными примерами задач.\n" + \
+           "Можно указать максимально допустимую размерность задачи опциональным аргументом командной строки nmax (по умолчанию значение nmax равно 6)\n" + \
+           "Запуск программы выглядит так:\n$ python3 main.py --nmax 4\n" + \
+           "Исходный код проекта лежит на Github: https://github.com/alavessi/CMC-prac-6sem"
     text.insert(END, pack)
     about_program_window.mainloop()
 
@@ -81,8 +83,11 @@ def help_program():
     help_window.geometry('600x350')
     text = Text(help_window, width=600, height=350, wrap=WORD)
     text.pack(side=TOP)
-    pack = "В первом столбце располагается система дифференциальных уравнений. Предлагается ввести пользовательские функции вида f:" + \
-           "f(x_1, x_2, ..., x_6). \n" + \
+    pack = "Данная программа позволяет получить решение краевой задачи системы ОДУ методом продолжения по параметру.\n" + \
+           "Имеется возможность графически отобразить на плоскости решения системы." + \
+           "Имеется возможность выбора одной из трёх известных краевых задач." + \
+           "В первом столбце располагается система дифференциальных уравнений. Предлагается ввести пользовательские функции вида f:" + \
+           "f(x_1, x_2, ..., x_6).\n" + \
            "Во втором столбце располагаются начальные условия системы. Предлагается инициализировать x_a(i), x_b(i)\n" + \
            "Кнопка 'нарисовать' строит двумерный график решения системы, зависящий от выбранных переменных.\n" + \
            "Имеется возможность сохранить пользовательский ввод и выбрать один из прошлых файлов ввода в качестве решаемой системы\n" + \
@@ -103,16 +108,17 @@ def about_author():
     label.pack(fill=BOTH, expand=True)
     text = Text(about_author_window, wrap=WORD)
     text.pack(side=TOP)
-    about_me = "Автор программы: Эмиров Самир, студент 313 группы ВМК МГУ, кафедры оптимального управления.\nВесна 2023"
+    about_me = "Автор программы: Эмиров Самир, студент 313 группы ВМК МГУ, кафедры оптимального управления.\n" + \
+               "email: samir.emirov.2001@mail.ru\nВесна 2023"
     text.insert(END, about_me)
     about_author_window.mainloop()
 
 
 class GUI:
-    def __init__(self):
+    def __init__(self, maximal_dimension: int):
         self.window = Tk()
         self.window.title("Метод продолжения по параметру")
-        self.window.geometry("1200x500")
+        self.window.geometry("1200x600")
         mainmenu = Menu(self.window)
         self.window.config(menu=mainmenu)
         filemenu = Menu(mainmenu, tearoff=0)
@@ -128,15 +134,16 @@ class GUI:
         mainmenu.add_cascade(label="Информация", menu=help_menu)
         self.texts_diff = list()
         self.texts_edge = list()
+        self.maximal_dimension = maximal_dimension
 
     def __get_data_from_gui(self):
         f = list()
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             expr = self.texts_diff[i].get("1.0", "end-1c")
             if expr:
                 f.append(parse_expr(expr, transformations=TRANSFORMATIONS, evaluate=True))
         R = list()
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             expr = self.texts_edge[i].get("1.0", "end-1c")
             if expr:
                 R.append(parse_expr(expr, transformations=TRANSFORMATIONS, evaluate=True))
@@ -144,7 +151,11 @@ class GUI:
         a = eval(self.init_a.get("1.0", "end-1c"))
         b = eval(self.init_b.get("1.0", "end-1c"))
         t_star = eval(self.init_time.get("1.0", "end-1c"))
-        p0 = list(eval(self.init_value.get("1.0", "end-1c")))
+        p0 = eval(self.init_value.get("1.0", "end-1c"))
+        if self.n_ == 1:
+            p0 = [p0]
+        else:
+            p0 = list(p0)
         inner_method = self.inner_method.get()
         external_method = self.external_method.get()
         return {'n': self.n_, 'a': a, 'b': b, 't*': t_star, 'p0': p0, 'f': f, 'R': R,
@@ -202,14 +213,14 @@ class GUI:
             defaultextension=".txt",
             filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")]
         )
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             ode_rhs = self.texts_diff[i].get("1.0", "end-1c")
             if ode_rhs == "":
                 break
             f.write(ode_rhs)
             f.write("\n")
         f.write("\n")
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             boundary_lhs = self.texts_edge[i].get("1.0", "end-1c")
             if boundary_lhs == "":
                 break
@@ -246,7 +257,7 @@ class GUI:
 
     def __frame_ode(self, frame: Frame):
         get_frame(frame=frame, text="Введите систему дифференциальных уравнений:", side=TOP)
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             fr = Frame(frame)
             fr.pack(side=TOP)
             self.texts_diff.append(Text(fr, width=30, height=1, font=("Arial", 15)))
@@ -255,7 +266,7 @@ class GUI:
 
     def __frame_boundary_values(self, frame: Frame):
         frame = get_frame(frame=frame, text="Введите систему краевых условий:", side=TOP)
-        for i in range(MAXIMALDIMENSION):
+        for i in range(self.maximal_dimension):
             fr = Frame(frame)
             fr.pack(side=TOP)
             self.texts_edge.append(Text(fr, width=30, height=1, font=("Arial", 15)))
@@ -276,17 +287,17 @@ class GUI:
         canvas.get_tk_widget().pack()
         toolbar = NavigationToolbar2Tk(canvas, plot)
         toolbar.update()
-        # placing the toolbar on the Tkinter window
         canvas.get_tk_widget().pack()
         plot.mainloop()
 
     def __frame_axes(self, frame: Frame):
         frame = get_frame(frame=frame, text="Оси графиков:", padx=15)
-        dr1 = Combobox(frame, width=5, state="readonly", values=AXES)
-        dr2 = Combobox(frame, width=5, state="readonly", values=AXES)
+        axes = ["t"] + [f"x_{i + 1}" for i in range(self.maximal_dimension)]
+        dr1 = Combobox(frame, width=5, state="readonly", values=axes)
+        dr2 = Combobox(frame, width=5, state="readonly", values=axes)
         dr1.pack(pady=5, side=LEFT)
         dr2.pack(pady=5, side=LEFT)
-        self.button_draw = Button(frame, text="Нарисовать", command=lambda: self.__draw(dr1, dr2), state=DISABLED)
+        self.button_draw = Button(frame, text="Нарисовать", font=("Arial", 15), command=lambda: self.__draw(dr1, dr2), state=DISABLED)
         self.button_draw.pack(side=LEFT, fill='both', pady=5, padx=15)
 
     def create_interface(self):
@@ -301,36 +312,25 @@ class GUI:
         frame_right.pack(side=RIGHT)
         self.__frame_boundary_values(frame_right)
         self.init_value = frame_initial_value(frame_right)
-        self.__frame_axes(frame_right)
         return frame_right
 
     def execute(self):
         frame = self.create_interface()
-        # frame = Frame(self.window)
-        # frame.pack(side=BOTTOM)
         self.progressbar = Progressbar(frame, orient="horizontal", length=200, value=0)
-        Button(frame, width=20, text="Выполнить", command=self.exec).pack(side=BOTTOM, fill=BOTH, pady=5)
-        self.progressbar.pack(side=BOTTOM)
-        """
-        frame = Frame(frame)
-        frame.pack(side=LEFT)
-        self.functional = Text(frame, width=30, height=1, font=("Arial", 15))
-        self.button_functional = Button(frame, text="Вычислить функционал от решения", command=self.calc_functional, state=DISABLED)
-        self.button_functional.pack(side=LEFT, fill='both', pady=5, padx=15)
-        self.functional.pack(side=LEFT, fill="x", expand=True)
-        """
-        # считаем интегральный функционал
-        label_functional = LabelFrame(frame, text="функционал от решения задачи:", font=("Inter", 15))
-        label_functional.pack(side="left", expand=True, pady=5)
+        Button(frame, text="Решить задачу", font=("Arial", 15), command=self.exec).pack(side=TOP, fill="y", pady=5)
+        Label(frame, text="Алгоритм выполняется...", font=("Inter", 15)).pack(side=TOP, expand=True, pady=5, padx=40)
+        self.progressbar.pack(side=TOP)
 
-        Label(label_functional, text="J:", font=("Inter", 15)).pack(side="left", expand=True, pady=5)
+        self.__frame_axes(frame)
+
+        label_functional = LabelFrame(frame, text="Интегральный функционал от решения задачи:", font=("Inter", 15))
+        label_functional.pack(side="left", expand=True, pady=5)
+        Label(label_functional, text="J(x) = ", font=("Inter", 15)).pack(side="left", expand=True, pady=5)
         self.integral_txt = Text(label_functional, width=10, height=1, font=("Times", 15))
         self.integral_txt.pack(side="left", expand=True, pady=5, padx=10)
-
-        self.button_functional = Button(label_functional, text="вычислить", height=1, width=10, command=self.calc_functional, state=DISABLED)
+        self.integral_value = Label(label_functional, text="", font=("Times", 15), state=DISABLED)
+        self.button_functional = Button(label_functional, text="Вычислить", font=("Arial", 15), width=10, command=self.calc_functional, state=DISABLED)
         self.button_functional.pack(side='left', fill=BOTH, padx=5)
-
-        self.integral_value = Label(label_functional, text=".", font=("Inter", 15))
         self.integral_value.pack(side='left', expand=True, pady=5, padx=10)
 
         self.window.mainloop()
