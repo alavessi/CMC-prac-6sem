@@ -66,42 +66,17 @@ def about_program():
     about_program_window.geometry('800x300')
     text = Text(about_program_window, width=150, height=100, wrap=WORD)
     text.pack(side=TOP)
-    pack = "Данная программа является семестровым заданием по практикуму на ЭВМ 6-ого семестра на кафедре оптимального управления ВМК МГУ.\n" + \
-           "Программа позволяет получить численное решение краевой задачи системы ОДУ методом продолжения по параметру.\n" + \
-           "Для использования программы нужно установить интерпретатор Python версии 3.10 или новее и библиотеки Numpy, Pandas, Matplotlib, Scipy, Sympy, odeintw, PIL.\n" + \
-           "После этого нужно положить в одну директорию файлы gui.py, solver.py и этот main.py, а так же файл my_photo.jpg и директорию problems с заданными примерами задач.\n" + \
-           "Можно указать максимально допустимую размерность задачи опциональным аргументом командной строки nmax (по умолчанию значение nmax равно 6)\n" + \
-           "Запуск программы выглядит так:\n$ python3 main.py --nmax 4\n" + \
-           "Исходный код проекта лежит на Github: https://github.com/alavessi/CMC-prac-6sem"
-    text.insert(END, pack)
+    with open("README.md", encoding='utf-8') as f:
+        documentation = f.read()
+    text.insert(END, documentation)
     about_program_window.mainloop()
-
-
-def help_program():
-    help_window = Tk()
-    help_window.title('Помощь')
-    help_window.geometry('600x350')
-    text = Text(help_window, width=600, height=350, wrap=WORD)
-    text.pack(side=TOP)
-    pack = "Данная программа позволяет получить решение краевой задачи системы ОДУ методом продолжения по параметру.\n" + \
-           "Имеется возможность графически отобразить на плоскости решения системы." + \
-           "Имеется возможность выбора одной из трёх известных краевых задач." + \
-           "В первом столбце располагается система дифференциальных уравнений. Предлагается ввести пользовательские функции вида f:" + \
-           "f(x_1, x_2, ..., x_6).\n" + \
-           "Во втором столбце располагаются начальные условия системы. Предлагается инициализировать x_a(i), x_b(i)\n" + \
-           "Кнопка 'нарисовать' строит двумерный график решения системы, зависящий от выбранных переменных.\n" + \
-           "Имеется возможность сохранить пользовательский ввод и выбрать один из прошлых файлов ввода в качестве решаемой системы\n" + \
-           "Имеется возможность сохранить решение краевой задачи в виде csv-файла"
-    text.insert(END, pack)
-    help_window.mainloop()
 
 
 def about_author():
     about_author_window = Tk()
     about_author_window.title('Об авторе')
     about_author_window.geometry('700x500')
-    path = "my_photo.jpg"
-    im = Image.open(path)
+    im = Image.open("my_photo.jpg")
     im = im.resize((300, 400))
     ph = ImageTk.PhotoImage(im, master=about_author_window)
     label = Label(about_author_window, image=ph, anchor=CENTER)
@@ -114,6 +89,18 @@ def about_author():
     about_author_window.mainloop()
 
 
+def help_program():
+    help_window = Tk()
+    help_window.title('Помощь')
+    help_window.geometry('800x350')
+    text = Text(help_window, width=600, height=350, wrap=WORD)
+    text.pack(side=TOP)
+    with open("help.txt", encoding="utf-8") as f:
+        user_guide = f.read()
+    text.insert(END, user_guide)
+    help_window.mainloop()
+
+
 class GUI:
     def __init__(self, maximal_dimension: int):
         self.window = Tk()
@@ -121,17 +108,20 @@ class GUI:
         self.window.geometry("1200x600")
         mainmenu = Menu(self.window)
         self.window.config(menu=mainmenu)
-        filemenu = Menu(mainmenu, tearoff=0)
-        filemenu.add_command(label="Открыть задачу...", command=self.open_from_file)
-        filemenu.add_command(label="Сохранить задачу...", command=self.save_problem)
-        filemenu.add_command(label="Сохранить решение...", command=self.save_solution)
-        filemenu.add_command(label="Выход", command=self.window.destroy)
-        mainmenu.add_cascade(label="Файл", menu=filemenu)
+        
+        file_menu = Menu(mainmenu, tearoff=0)
+        file_menu.add_command(label="Открыть задачу...", command=self.open_from_file)
+        file_menu.add_command(label="Сохранить задачу...", command=self.save_problem)
+        file_menu.add_command(label="Сохранить решение...", command=self.save_solution)
+        file_menu.add_command(label="Выход", command=self.window.destroy)
+        mainmenu.add_cascade(label="Файл", menu=file_menu)
+        
         help_menu = Menu(mainmenu, tearoff=0)
-        help_menu.add_command(label="Помощь", command=help_program)
         help_menu.add_command(label="О программе", command=about_program)
         help_menu.add_command(label="Об авторе", command=about_author)
+        help_menu.add_command(label="Помощь", command=help_program)
         mainmenu.add_cascade(label="Информация", menu=help_menu)
+        
         self.texts_diff = list()
         self.texts_edge = list()
         self.maximal_dimension = maximal_dimension
