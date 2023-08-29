@@ -95,7 +95,7 @@ class Solver:
         x0 = self.__find_x(self.__p0)[1]
         Phi0 = self.__Phi(x0)
         p = self.__solve_external(J, Phi0, window, progressbar)
-        print(f"ans = {p}")
+        print(f"p_ans = {p}")
         if self.__t_star == self.__a:
             sol = solve_ivp(fun=self.__fun, t_span=[self.__a, self.__b], y0=p, t_eval=np.linspace(self.__a, self.__b, 100))
             return sol.t, sol.y
