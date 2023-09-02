@@ -42,6 +42,7 @@ def frame_time_star(frame: Frame) -> Text:
 def frame_inner_method(frame: Frame) -> Combobox:
     frame = get_frame(frame=frame, text="Метод решения внутренней задачи:", padx=15)
     inner_method = Combobox(frame, width=5, state="readonly", values=METHODS)
+    inner_method.current(0)
     inner_method.pack(pady=5, side=LEFT)
     return inner_method
 
@@ -49,6 +50,7 @@ def frame_inner_method(frame: Frame) -> Combobox:
 def frame_external_method(frame: Frame) -> Combobox:
     frame = get_frame(frame=frame, text="Метод решения внешней задачи:", padx=15)
     external_method = Combobox(frame, width=5, state="readonly", values=METHODS)
+    external_method.current(0)
     external_method.pack(pady=5, side=LEFT)
     return external_method
 
@@ -63,7 +65,7 @@ def frame_init_parameter(frame: Frame) -> Text:
 def about_program():
     about_program_window = Tk()
     about_program_window.title('О программе')
-    about_program_window.geometry('800x300')
+    about_program_window.geometry('800x400')
     documentation = Text(about_program_window, width=150, height=100, wrap=WORD)
     documentation.pack(side=TOP)
     with open("README.md", encoding='utf-8') as f:
@@ -90,7 +92,7 @@ def about_author():
 def help_program():
     help_window = Tk()
     help_window.title('Помощь')
-    help_window.geometry('800x350')
+    help_window.geometry('800x400')
     help_info = Text(help_window, width=600, height=350, wrap=WORD)
     help_info.pack(side=TOP)
     with open("help.txt", encoding="utf-8") as f:
@@ -100,9 +102,12 @@ def help_program():
 
 class GUI:
     def __init__(self, maximal_dimension: int):
+        self.maximal_dimension = maximal_dimension
+        self.init_odes = []
+        self.init_boundary_conditions = []
         self.window = Tk()
         self.window.title("Метод продолжения по параметру")
-        self.window.geometry("1200x600")
+        self.window.geometry("1200x700")
         mainmenu = Menu(self.window)
         self.window.config(menu=mainmenu)
 
@@ -118,10 +123,6 @@ class GUI:
         help_menu.add_command(label="Об авторе", command=about_author)
         help_menu.add_command(label="Помощь", command=help_program)
         mainmenu.add_cascade(label="Информация", menu=help_menu)
-
-        self.init_odes = []
-        self.init_boundary_conditions = []
-        self.maximal_dimension = maximal_dimension
 
     def __get_data_from_gui(self):
         f = []
@@ -198,7 +199,6 @@ class GUI:
         f.write(self.init_time_star.get("1.0", "end-1c"))
         f.write("\n")
         f.write(self.init_parameter.get("1.0", "end-1c"))
-
 
     def save_solution(self):
         solution_dict = {"t": self.t_res}
