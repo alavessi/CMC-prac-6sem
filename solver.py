@@ -59,7 +59,7 @@ class Solver:
             Phi[i] = R.evalf()
         return Phi
 
-    def __dRdx(self, x, Rdx):  # подстановка x(a,p), x(b,p) в матрицы частных производных R'x, R'y
+    def diff(self, x, Rdx):  # подстановка x(a,p), x(b,p) в матрицы частных производных R'x, R'y
         A = Rdx
         for i in range(self.__n):
             A = A.subs({self.__xa[i]: x[i][0], self.__xb[i]: x[i][-1]})
@@ -75,8 +75,8 @@ class Solver:
         Xa, Xb = self.__find_X(np.array(A, dtype=float))
         Rdx = Matrix(self.__R).jacobian(Matrix(self.__xa))
         Rdy = Matrix(self.__R).jacobian(Matrix(self.__xb))
-        dRdx = self.__dRdx(x, Rdx)
-        dRdy = self.__dRdx(x, Rdy)
+        dRdx = self.diff(x, Rdx)
+        dRdy = self.diff(x, Rdy)
         dPhidp = np.dot(dRdx, Xa) + np.dot(dRdy, Xb)
         return dPhidp
 

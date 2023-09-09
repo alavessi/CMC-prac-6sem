@@ -126,8 +126,8 @@ class GUI:
 
     def __get_data_from_gui(self):
         f = []
-        for i in range(self.maximal_dimension):
-            expr = self.init_odes[i].get("1.0", "end-1c")
+        for init_ode in self.init_odes:
+            expr = init_ode.get("1.0", "end-1c")
             if expr:
                 f.append(parse_expr(expr, transformations=TRANSFORMATIONS, evaluate=True))
         R = [None] * len(f)
@@ -178,15 +178,15 @@ class GUI:
     def save_problem(self):
         filetypes = [("All Files", "*.*"), ("Text Documents", "*.txt")]
         f = asksaveasfile(initialfile='untitled.txt', defaultextension=".txt", filetypes=filetypes)
-        for i in range(self.maximal_dimension):
-            ode_rhs = self.init_odes[i].get("1.0", "end-1c")
+        for init_ode in self.init_odes:
+            ode_rhs = init_ode.get("1.0", "end-1c")
             if ode_rhs == "":
                 break
             f.write(ode_rhs)
             f.write("\n")
         f.write("\n")
-        for i in range(self.maximal_dimension):
-            boundary_lhs = self.init_boundary_conditions[i].get("1.0", "end-1c")
+        for boundary_condition in self.init_boundary_conditions:
+            boundary_lhs = boundary_condition.get("1.0", "end-1c")
             if boundary_lhs == "":
                 break
             f.write(boundary_lhs)
@@ -202,10 +202,8 @@ class GUI:
 
     def save_solution(self):
         solution_dict = {"t": self.t_res}
-        i = 1
-        for x in self.x_res:
+        for i, x in enumerate(self.x_res, start=1):
             solution_dict[f"x_{i}"] = x
-            i += 1
         df = DataFrame(solution_dict)
         filetypes = [("All Files", "*.*"), ("Text Documents", "*.txt"), ("Table documents", "*.csv")]
         f = asksaveasfile(initialfile="untitled.csv", defaultextension=".csv", filetypes=filetypes)
@@ -222,23 +220,23 @@ class GUI:
     def __frame_odes(self, frame: Frame):
         get_frame(frame=frame, text="Введите систему дифференциальных уравнений:", side=TOP)
         for i in range(self.maximal_dimension):
-            fr = Frame(frame)
-            fr.pack(side=TOP)
-            self.init_odes.append(Text(fr, width=30, height=1, font=("Arial", 15)))
-            Label(fr, text=f"dx_{i + 1}/dt =", font=("Inter", 15)).pack(side=LEFT, expand=True, pady=5, padx=40)
+            next_frame = Frame(frame)
+            next_frame.pack(side=TOP)
+            self.init_odes.append(Text(next_frame, width=30, height=1, font=("Arial", 15)))
+            Label(next_frame, text=f"dx_{i + 1}/dt =", font=("Inter", 15)).pack(side=LEFT, expand=True, pady=5, padx=40)
             self.init_odes[i].pack(side=LEFT, fill="x", expand=True)
 
     def __frame_boundary_conditions(self, frame: Frame):
         frame = get_frame(frame=frame, text="Введите систему краевых условий:", side=TOP)
         for i in range(self.maximal_dimension):
-            fr = Frame(frame)
-            fr.pack(side=TOP)
-            self.init_boundary_conditions.append(Text(fr, width=30, height=1, font=("Arial", 15)))
+            next_frame = Frame(frame)
+            next_frame.pack(side=TOP)
+            self.init_boundary_conditions.append(Text(next_frame, width=30, height=1, font=("Arial", 15)))
             self.init_boundary_conditions[i].pack(side=LEFT, fill="x", expand=True)
-            Label(fr, text="= 0", font=("Inter", 15)).pack(side=LEFT, expand=True, pady=5, padx=40)
+            Label(next_frame, text="= 0", font=("Inter", 15)).pack(side=LEFT, expand=True, pady=5, padx=40)
 
     def __draw(self, dr1, dr2):
-        conv = {f"x_{i + 1}": self.x_res[i] for i in range(len(self.x_res))}
+        conv = {f"x_{i}": x for i, x in enumerate(self.x_res, start=1)}
         conv["t"] = self.t_res
         plot = Tk()
         plot.title("График решения задачи")
@@ -261,7 +259,8 @@ class GUI:
         dr2 = Combobox(frame, width=5, state="readonly", values=axes)
         dr1.pack(pady=5, side=LEFT)
         dr2.pack(pady=5, side=LEFT)
-        self.button_draw = Button(frame, text="Нарисовать", font=("Arial", 15), command=lambda: self.__draw(dr1, dr2), state=DISABLED)
+        self.button_draw = Button(frame, text="Нарисовать", font=("Arial", 15),
+                                  command=lambda: self.__draw(dr1, dr2), state=DISABLED)
         self.button_draw.pack(side=LEFT, fill='both', pady=5, padx=15)
 
     def create_interface(self):
@@ -293,7 +292,8 @@ class GUI:
         self.integral_txt = Text(label_functional, width=10, height=1, font=("Times", 15))
         self.integral_txt.pack(side="left", expand=True, pady=5, padx=10)
         self.integral_value = Label(label_functional, text="", font=("Times", 15), state=DISABLED)
-        self.button_functional = Button(label_functional, text="Вычислить", font=("Arial", 15), width=10, command=self.calc_functional, state=DISABLED)
+        self.button_functional = Button(label_functional, text="Вычислить", font=("Arial", 15),
+                                        width=10, command=self.calc_functional, state=DISABLED)
         self.button_functional.pack(side='left', fill=BOTH, padx=5)
         self.integral_value.pack(side='left', expand=True, pady=5, padx=10)
 

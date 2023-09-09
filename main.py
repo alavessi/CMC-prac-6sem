@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
-import argparse
+from argparse import ArgumentParser
 
 from gui import GUI
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Решение краевой задачи методом продолжения по параметру')
+    parser = ArgumentParser(description='Решение краевой задачи методом продолжения по параметру')
     parser.add_argument('--nmax', type=int, default=6, help='Максимальныая размерность задачи')
     args = parser.parse_args()
     nmax = args.nmax
